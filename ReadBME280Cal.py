@@ -17,9 +17,9 @@ BME280_CAL1_BLK_LEN    = 8
 BME280_CAL2_BLK_REG    = int("88",16)
 BME280_CAL2_BLK_LEN    = 27
 
-FILE_OUT = "BME280CalDict.csv"
+FILE_OUT = "CalDictBME280.csv"
 
-def ReadI2CReg(Reg):
+def ReadI2CRegByte(Reg):
     Value = bus.read_byte_data(I2CADDRESS, Reg)
     return Value
 
@@ -30,12 +30,12 @@ def ReadBME280CalReg():
     RegDict = dict()
     
     for Reg in range(BME280_CAL2_BLK_REG, BME280_CAL2_BLK_REG + BME280_CAL2_BLK_LEN - 1):
-        Value = ReadI2CReg(Reg)
+        Value = ReadI2CRegByte(Reg)
         RegDict["2."+str(Reg - BME280_CAL2_BLK_REG)] = Value
         #print("Reg %X  :   %X" %(Reg,Value))
         
     for Reg in range(BME280_CAL1_BLK_REG, BME280_CAL1_BLK_REG + BME280_CAL1_BLK_LEN - 1):
-        Value = ReadI2CReg(Reg)
+        Value = ReadI2CRegByte(Reg)
         RegDict["1."+str(Reg - BME280_CAL1_BLK_REG)] = Value
         #print("Reg %X  :   %X" %(Reg,Value))
         
