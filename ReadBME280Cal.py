@@ -109,7 +109,7 @@ def CalcCalValues(CalRegDict):
     return CalDict
 
 def WriteCalDictToFile(CalDict):
-    with open(FILE_OUT, 'wb') as csv_file:
+    with open(FILE_OUT, 'w') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in CalDict.items():
             writer.writerow([key, value])
@@ -121,7 +121,7 @@ CalDict = CalcCalValues(RegDict)
 
 WriteCalDictToFile(CalDict)
 
-with open(FILE_OUT, 'rb') as csv_file:
+with open(FILE_OUT, 'r') as csv_file:
     reader = csv.reader(csv_file)
     mydict = dict(reader)
 
