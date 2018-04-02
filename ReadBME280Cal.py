@@ -6,18 +6,21 @@
 # Reads the calibration data from a BME280 connected to an R Pi
 
 import smbus
+import csv
 
 bus = smbus.SMBus(1)
 
-Address = 0x77
+I2CADDRESS = 0x77
 
 BME280_CAL1_BLK_REG    = int("E1",16)
 BME280_CAL1_BLK_LEN    = 8
 BME280_CAL2_BLK_REG    = int("88",16)
 BME280_CAL2_BLK_LEN    = 27
 
+FILE_OUT = "BME280CalDict.csv"
+
 def ReadI2CReg(Reg):
-    Value = bus.read_byte_data(Address, Reg)
+    Value = bus.read_byte_data(I2CADDRESS, Reg)
     return Value
 
 def ReadBME280CalReg():
@@ -43,19 +46,19 @@ def BoschHEXHEX2UnsignedLong(msb,lsb):
     BME 280 has funky ways to storing values. This takes two bytes and makes an unsigned long
     """
 
-    return  ((long(msb,16) << 8) + long(lsb,16))
+    return  ((long(msb) << 8) + long(lsb))
             
 def BoschHEXHEX2SignedLong(msb,lsb):
     """
     BME 280 has funky ways to storing values. This takes two bytes and makes a signed long
     """
             
-    if((long(msb,16) >> 7) == 1):
+    if((long(msb) >> 7) == 1):
         sign = long(-1)
     else:
         sign = long(1)
 
-    return (sign * (((long(msb,16) & 0b01111111) << 8) + long(lsb,16)))
+    return (sign * (((long(msb) & 0b01111111) << 8) + long(lsb)))
     
 def CalcCalValues(CalRegDict):
     """
@@ -94,20 +97,42 @@ def CalcCalValues(CalRegDict):
     #  Data sheet H3 unsigned single byte memory E3
     CalDict["H3"] = BoschHEXHEX2UnsignedLong("00",CalRegDict.get("1.2"))
     #  Data sheet H4 signed 12 bits. E4 holds the most significant 8 and the least significant 4 are the low 4 of E5
-    sign = -1 if (long(CalRegDict.get("1.3"),16) >> 7 == 1) else 1
-    CalDict["H4"] = (long(sign) * (((long(CalRegDict.get("1.3"),16) & 0b01111111) << 4) + (long(CalRegDict.get("1.4"),16) & 0b00001111) ))
+    sign = -1 if (long(CalRegDict.get("1.3")) >> 7 == 1) else 1
+    CalDict["H4"] = (long(sign) * (((long(CalRegDict.get("1.3")) & 0b01111111) << 4) + (long(CalRegDict.get("1.4")) & 0b00001111) ))
     #  Data sheet H5 signed 12 bits. E5 holds the least significant 4 bits in its high 4 and E6 holds the most significant bits
-    sign = -1 if (long(CalRegDict.get("1.5"),16) >> 7 == 1) else 1
-    CalDict["H5"] = (long(sign) * (((long(CalRegDict.get("1.5"),16) & 0b01111111) << 4) + (long(CalRegDict.get("1.4"),16) >> 4) ))
+    sign = -1 if (long(CalRegDict.get("1.5")) >> 7 == 1) else 1
+    CalDict["H5"] = (long(sign) * (((long(CalRegDict.get("1.5")) & 0b01111111) << 4) + (long(CalRegDict.get("1.4")) >> 4) ))
     #  Data sheet H6 signed byte E7
-    sign = -1 if (long(CalRegDict.get("1.6"),16) >> 7 == 1) else 1
-    CalDict["H6"] = long(sign) * (long(CalRegDict.get("1.6"),16) & 0b01111111)
+    sign = -1 if (long(CalRegDict.get("1.6")) >> 7 == 1) else 1
+    CalDict["H6"] = long(sign) * (long(CalRegDict.get("1.6")) & 0b01111111)
+    
+    return CalDict
+
+def WriteCalDictToFile(CalDict):
+    with open(FILE_OUT, 'wb') as csv_file:
+        writer = csv.writer(csv_file)
+        for key, value in CalDict.items():
+            writer.writerow([key, value])
         
   
 RegDict = ReadBME280CalReg()
 
 CalDict = CalcCalValues(RegDict)
 
-print(CalDict)
+WriteCalDictToFile(CalDict)
+
+with open(FILE_OUT, 'rb') as csv_file:
+    reader = csv.reader(csv_file)
+    mydict = dict(reader)
+
+# Does nto work
+# map(long,mydict.itervalues())
+
+for key in mydict:
+    mydict[key] = long(mydict[key])
+
+print(mydict)
+
+print(mydict["H6"] + mydict["H5"])
 
 
