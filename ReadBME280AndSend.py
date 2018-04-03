@@ -9,6 +9,11 @@ import smbus
 import csv
 import time
 
+from twisted.internet import reactor, defer, endpoints
+from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
+from twisted.protocols.amp import AMP
+from SW_RemoteWatcher import IndoorPiA
+
 bus = smbus.SMBus(1)
 
 I2CADDRESS = 0x77
@@ -313,6 +318,29 @@ DataDict = CalcTPH(DataRaw,CalDict)
 
 # now for the hard part
 # http://twistedmatrix.com/documents/current/core/examples/
+
+def SendData(DataDict):
+    # TODO add soft coding for the IP and port
+    destination = TCP4ClientEndpoint(reactor, '192.168.0.7', 1212)
+    ReceiveConformationDeferred = connectProtocol(destination, AMP())
+    
+    # This runs to send the data
+    def connected(ampProto):
+        return ampProto.callRemote(IndoorPiA, TA=DataDict["Temperature"], PA=DataDict["Pressure"], HA=DataDict["Humidity"])
+    ReceiveConformationDeferred.addCallback(connected)
+    def summed(result):
+        return result['cksu']
+    ReceiveConformationDeferred.addCallback(summed)
+
+
+    def done(result):
+        print('Done sending data to Stoic:', result)
+        reactor.stop()
+    defer.DeferredList([ReceiveConformationDeferred]).addCallback(done)
+
+
+SendData(DataDict)
+reactor.run()
 
 
 
