@@ -18,7 +18,6 @@ bus = smbus.SMBus(1)
 
 I2CADDRESS = 0x77
 
-CAL_FILE_IN = "CalDictBME280.csv"
 
 LOG_FILE_OUT = "LogBME280.txt"
 
@@ -303,18 +302,18 @@ def CalcTPH(DataRaw,CalDict):
 
 
 # Main
-CalDict = ReadCalibrationDict()
+#CalDict = ReadCalibrationDict()
 
-#InitializeBME280()
+InitializeBME280()
 
-DataRaw = ObtainDataFromBME280()
+#DataRaw = ObtainDataFromBME280()
 
 # Test Line
-for value in DataRaw:
-     WriteLogEntry(str(value))
+#for value in DataRaw:
+#     WriteLogEntry(str(value))
      
 
-DataDict = CalcTPH(DataRaw,CalDict)
+#DataDict = CalcTPH(DataRaw,CalDict)
 
 # now for the hard part
 # http://twistedmatrix.com/documents/current/core/examples/
@@ -339,8 +338,8 @@ def SendData(DataDict):
     defer.DeferredList([ReceiveConformationDeferred]).addCallback(done)
 
 
-SendData(DataDict)
-reactor.run()
+#SendData(DataDict)
+#reactor.run()
 
 
 
