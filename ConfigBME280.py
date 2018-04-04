@@ -9,10 +9,10 @@ import smbus
 import csv
 import time
 
-from twisted.internet import reactor, defer, endpoints
-from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
-from twisted.protocols.amp import AMP
-from SW_RemoteWatcher import IndoorPiA
+#from twisted.internet import reactor, defer, endpoints
+#from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
+#from twisted.protocols.amp import AMP
+#from SW_RemoteWatcher import IndoorPiA
 
 bus = smbus.SMBus(1)
 

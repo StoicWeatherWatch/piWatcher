@@ -18,9 +18,9 @@ bus = smbus.SMBus(1)
 
 I2CADDRESS = 0x77
 
-CAL_FILE_IN = "CalDictBME280.csv"
+CAL_FILE_IN = "/home/pi/Stoic/CalDictBME280.csv"
 
-LOG_FILE_OUT = "LogBME280.txt"
+LOG_FILE_OUT = "/home/pi/Stoic/LogBME280.txt"
 
 DELAY_FOR_DAQ       =    int(5)
 
@@ -321,7 +321,7 @@ DataDict = CalcTPH(DataRaw,CalDict)
 
 def SendData(DataDict):
     # TODO add soft coding for the IP and port
-    destination = TCP4ClientEndpoint(reactor, '192.168.0.7', 1212)
+    destination = TCP4ClientEndpoint(reactor, '192.168.0.7', 1216)
     ReceiveConformationDeferred = connectProtocol(destination, AMP())
     
     # This runs to send the data
