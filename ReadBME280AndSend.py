@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Read BME280 Calibration Data
-# Version 0.0.1
-# 2018-04-01
+# Version 0.0.2
+# 2018-04-04
 # Stoic Weather Watch
 # Reads TPH data from a BME280 connected to an R Pi and sends it to Stoic
 
@@ -23,6 +23,8 @@ CAL_FILE_IN = "/home/pi/Stoic/CalDictBME280.csv"
 LOG_FILE_OUT = "/home/pi/Stoic/LogBME280.txt"
 
 DELAY_FOR_DAQ       =    int(5)
+
+NUM_SAMPLES_TO_AVERAGE = 4
 
 BME280_DATASTART_REG  =    int("0xF7",16)
 
@@ -306,15 +308,33 @@ def CalcTPH(DataRaw,CalDict):
 CalDict = ReadCalibrationDict()
 
 #InitializeBME280()
+MeanDataDict = dict()
+MeanDataDict["Temperature"] = float(0.0)
+MeanDataDict["Humidity"] = float(0.0)
+MeanDataDict["Pressure"] = float(0.0)
 
-DataRaw = ObtainDataFromBME280()
+# Take repeated samples and average
+for i in range(NUM_SAMPLES_TO_AVERAGE):
+    DataRaw = ObtainDataFromBME280()
+    DataDict = CalcTPH(DataRaw,CalDict)
+    
+    MeanDataDict["Temperature"] = MeanDataDict["Temperature"] + DataDict["Temperature"]
+    MeanDataDict["Humidity"]    = MeanDataDict["Humidity"]    + DataDict["Humidity"]
+    MeanDataDict["Pressure"]    = MeanDataDict["Pressure"]    + DataDict["Pressure"]
+    
+    time.sleep(DELAY_FOR_DAQ)
+    
+MeanDataDict["Temperature"] = MeanDataDict["Temperature"] / float(NUM_SAMPLES_TO_AVERAGE)
+MeanDataDict["Humidity"]    = MeanDataDict["Humidity"]    / float(NUM_SAMPLES_TO_AVERAGE)
+MeanDataDict["Pressure"]    = MeanDataDict["Pressure"]    / float(NUM_SAMPLES_TO_AVERAGE)
+
+    
 
 # Test Line
-for value in DataRaw:
-     WriteLogEntry(str(value))
+#for value in DataRaw:
+#     WriteLogEntry(str(value))
      
 
-DataDict = CalcTPH(DataRaw,CalDict)
 
 # now for the hard part
 # http://twistedmatrix.com/documents/current/core/examples/
@@ -339,7 +359,7 @@ def SendData(DataDict):
     defer.DeferredList([ReceiveConformationDeferred]).addCallback(done)
 
 
-SendData(DataDict)
+SendData(MeanDataDict)
 reactor.run()
 
 
