@@ -5,6 +5,8 @@
 # Stoic Weather Watch
 # Reads TPH data from a BME280 connected to an R Pi and sends it to Stoic
 
+# TODO Consider some other transmission system https://groups.google.com/forum/#!topic/weewx-development/lW-mwzJgaxk
+
 import smbus
 import csv
 import time
